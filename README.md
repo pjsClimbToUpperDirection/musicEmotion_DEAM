@@ -1,4 +1,4 @@
 # musicEmotion_DEAM
 
-#### 이하 작성
-- 예시: example
+#### 데이터 처리 방식
+이들은 
