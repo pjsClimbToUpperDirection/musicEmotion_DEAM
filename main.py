@@ -42,6 +42,10 @@ X_by_song, y_by_song = total_data_extractor(static_csv, audio_dir)
 # Get list of song IDs
 song_ids = list(X_by_song.keys())
 
+x_song = []
+x_song.extend(X_by_song[song_ids[0]])
+print("x_song.extend(X_by_song[song_id]).shape: ", np.array(x_song).shape)
+
 # Split songs into train, validation, and test sets
 train_ids, temp_ids = train_test_split(song_ids, test_size=0.3, random_state=42)
 val_ids, test_ids = train_test_split(temp_ids, test_size=0.5, random_state=42)
@@ -75,6 +79,9 @@ X_train = np.expand_dims(X_train, axis=-1)
 X_val = np.expand_dims(X_val, axis=-1)
 X_test = np.expand_dims(X_test, axis=-1)
 
+
+# Train segments: (10973, 128, 431, 1), Val segments: (2357, 128, 431, 1), Test segments: (2357, 128, 431, 1)
+# Train labels: (10973, 2), Val labels: (2357, 2), Test labels: (2357, 2)
 print(f"Train segments: {X_train.shape}, Val segments: {X_val.shape}, Test segments: {X_test.shape}")
 print(f"Train labels: {y_train.shape}, Val labels: {y_val.shape}, Test labels: {y_test.shape}")
 
@@ -84,11 +91,11 @@ print(f"Train labels: {y_train.shape}, Val labels: {y_val.shape}, Test labels: {
 scaler = MinMaxScaler(feature_range=(0, 1))
 
 # Fit scaler on training labels only (flatten to 2D for scaler)
-y_train_2d = y_train.reshape(-1, 2)  # Shape: (n_train_segments, 2)
+y_train_2d = y_train.reshape(-1, 2)  # Shape: (n_train_segments, 2) -> 정규화를 위하여 라벨로 주어지는 2개의 데이터를 각각 array로 변환(대괄호로 각각을 감쌈)
 scaler.fit(y_train_2d)  # Compute min and max from training set only
 
 # Transform all sets
-y_train_normalized = scaler.transform(y_train_2d).reshape(y_train.shape)
+y_train_normalized = scaler.transform(y_train_2d).reshape(y_train.shape) # reshape(-1, 2) 이전 모양으로 복구
 y_val_normalized = scaler.transform(y_val.reshape(-1, 2)).reshape(y_val.shape)
 y_test_normalized = scaler.transform(y_test.reshape(-1, 2)).reshape(y_test.shape)
 

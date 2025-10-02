@@ -208,3 +208,4 @@ __marimo__/
 
 # 이하부터 본인이 작성한 ignore 대상
 *.keras
+*.mp3
