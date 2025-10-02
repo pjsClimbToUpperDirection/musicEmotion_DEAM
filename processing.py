@@ -45,4 +45,3 @@ def total_data_extractor(static_csv_path, audio_dir):
 
     print("Data loading and mel-spectrogram extraction complete.")
     return X_by_song, y_by_song
-

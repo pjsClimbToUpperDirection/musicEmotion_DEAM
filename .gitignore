@@ -207,4 +207,4 @@ marimo/_lsp/
 __marimo__/
 
 # 이하부터 본인이 작성한 ignore 대상
-*.h5
+*.keras

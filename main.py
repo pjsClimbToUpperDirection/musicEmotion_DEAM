@@ -115,7 +115,7 @@ model = models.Sequential([
 # Compile model
 model.compile(optimizer='adam', loss='mean_squared_error', metrics=['mae'])
 
-# Train model todo 특정 버전에서 .keras 확장자로 모델을 저장하려 할 시 버그가 발생함, 해결하여야
+# Model training
 history = model.fit(X_train, y_train_normalized,
                     validation_data=(X_val, y_val_normalized),
                     epochs=50,
