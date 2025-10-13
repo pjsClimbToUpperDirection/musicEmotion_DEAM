@@ -42,9 +42,9 @@ X_by_song, y_by_song = total_data_extractor(static_csv, audio_dir)
 # Get list of song IDs
 song_ids = list(X_by_song.keys())
 
-x_song = []
-x_song.extend(X_by_song[song_ids[0]])
-print("x_song.extend(X_by_song[song_id]).shape: ", np.array(x_song).shape)
+# x_song = []
+# x_song.extend(X_by_song[song_ids[0]])
+# print("x_song.extend(X_by_song[song_id]).shape: ", np.array(x_song).shape) #  (9, 128, 431)
 
 # Split songs into train, validation, and test sets
 train_ids, temp_ids = train_test_split(song_ids, test_size=0.3, random_state=42)
@@ -95,7 +95,12 @@ y_train_2d = y_train.reshape(-1, 2)  # Shape: (n_train_segments, 2) -> 정규화
 scaler.fit(y_train_2d)  # Compute min and max from training set only
 
 # Transform all sets
+# linear 형식으로 반환되는 두개의 값을 정규화
+print("y_train: ", y_train)
 y_train_normalized = scaler.transform(y_train_2d).reshape(y_train.shape) # reshape(-1, 2) 이전 모양으로 복구
+print("y_train_normalized: ", y_train_normalized)
+print("y_train_normalized_reverted: ", scaler.inverse_transform(y_train_normalized))
+
 y_val_normalized = scaler.transform(y_val.reshape(-1, 2)).reshape(y_val.shape)
 y_test_normalized = scaler.transform(y_test.reshape(-1, 2)).reshape(y_test.shape)
 
@@ -125,10 +130,10 @@ model.compile(optimizer='adam', loss='mean_squared_error', metrics=['mae'])
 # Model training
 history = model.fit(X_train, y_train_normalized,
                     validation_data=(X_val, y_val_normalized),
-                    epochs=50,
+                    epochs=30,
                     batch_size=32,
                     callbacks=[
-                        tf.keras.callbacks.EarlyStopping(patience=10),
+                        tf.keras.callbacks.EarlyStopping(patience=4),
                         tf.keras.callbacks.ModelCheckpoint("best_cnn_model.keras", save_best_only=True)
                     ])
 
@@ -136,10 +141,8 @@ history = model.fit(X_train, y_train_normalized,
 y_pred = model.predict(X_test)
 mae_valence = np.mean(np.abs(y_pred[:, 0] - y_test_normalized[:, 0]))
 mae_arousal = np.mean(np.abs(y_pred[:, 1] - y_test_normalized[:, 1]))
+print(f"y_pred(native): {y_pred[:, 0]}") # example: [-321.65237 -318.12027 -294.13358 ... -314.55313 -309.49283 -301.92532]
 print(f"Test MAE - Valence: {mae_valence:.4f}, Arousal: {mae_arousal:.4f}")
-
-y_pred = model.predict(X_test)
-
 
 # Additional metrics
 mse_valence = np.mean((y_pred[:, 0] - y_test_normalized[:, 0]) ** 2)

@@ -25,6 +25,7 @@ def per_data_extractor(audio_path, label=None):
 
     if label is not None:
         # 변환된 데이터, Raw labels (1-9 scaling) -> mel_specs의 각각의 값에 label이 대응되도록 list로서의 label 데이터를 mel_specs의 길이만큼 반복
+        # 'valence_mean', 'arousal_mean' 두 데이터가 존재하므로 label의 길이는 2 -> (2,) shape의 데이터를 위에 서술한 바와 같이 scaling
         return mel_specs, [label] * len(mel_specs)
     else:
         return mel_specs # 단순 데이터 변환만 희망하는 경우 label 인자를 전달하지 않음
@@ -39,6 +40,8 @@ def total_data_extractor(static_csv_path, audio_dir, do_not_print_scaled_deg=Fal
 
     for song_id in dataframe_static_annotations['song_id'].values:
         audio_path = os.path.join(audio_dir, f"{song_id}.mp3")
+
+        # 'valence_mean', 'arousal_mean' 두 데이터만 사용
         label = dataframe_static_annotations[dataframe_static_annotations['song_id'] == song_id][[' valence_mean', ' arousal_mean']].values[0]
         try:
             X_by_song[song_id], y_by_song[song_id] \
@@ -52,16 +55,21 @@ def total_data_extractor(static_csv_path, audio_dir, do_not_print_scaled_deg=Fal
     print("Data loading and mel-spectrogram extraction complete.")
     return X_by_song, y_by_song
 
+# todo 출력값은 정규화된 라벨에 의하여 학습되었으므로 inverse_transform으로 역변환하여 실제 예측 값을 확인할 수 있다.
 def test_only_one_music(audio_path, model_path):
     mel_specs_as_array = []
     mel_specs = per_data_extractor(audio_path)
+    print("mel_specs: ", np.array(mel_specs).shape)
+
     mel_specs_as_array.extend(mel_specs)
     processed = np.array(mel_specs_as_array)
-    processed = np.expand_dims(processed, axis=-1)
+    processed = np.expand_dims(processed, axis=-1) # Expand dimensions for CNN or LSTM
     print("processed music data's shape: ", processed.shape)
 
     model = models.load_model(model_path)
     y_pred = model.predict(processed)
+    print(y_pred)
+    print(np.array(y_pred).shape)
     mean_valence = np.mean(np.abs(y_pred[:, 0]))
     mean_arousal = np.mean(np.abs(y_pred[:, 1]))
     print(f"Test(Mean) - Valence: {mean_valence:.4f}, Arousal: {mean_arousal:.4f}")
