@@ -5,6 +5,7 @@ from tensorflow.keras import layers, models
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import joblib
 
 import kagglehub
 
@@ -92,7 +93,8 @@ scaler = MinMaxScaler(feature_range=(0, 1))
 
 # Fit scaler on training labels only (flatten to 2D for scaler)
 y_train_2d = y_train.reshape(-1, 2)  # Shape: (n_train_segments, 2) -> 정규화를 위하여 라벨로 주어지는 2개의 데이터를 각각 array로 변환(대괄호로 각각을 감쌈)
-scaler.fit(y_train_2d)  # Compute min and max from training set only
+scaler.fit(y_train_2d)  # Compute min and max from training set only(정규화 이전 주어진 값에 따라 fitting)
+joblib.dump(scaler, 'minmax_scaler.pkl') # Save the fitted scaler to a file (저장)
 
 # Transform all sets
 # linear 형식으로 반환되는 두개의 값을 정규화
@@ -130,10 +132,10 @@ model.compile(optimizer='adam', loss='mean_squared_error', metrics=['mae'])
 # Model training
 history = model.fit(X_train, y_train_normalized,
                     validation_data=(X_val, y_val_normalized),
-                    epochs=30,
+                    epochs=50,
                     batch_size=32,
                     callbacks=[
-                        tf.keras.callbacks.EarlyStopping(patience=4),
+                        tf.keras.callbacks.EarlyStopping(patience=10),
                         tf.keras.callbacks.ModelCheckpoint("best_cnn_model.keras", save_best_only=True)
                     ])
 

@@ -3,6 +3,7 @@ import numpy as np
 import os
 import pandas as pd
 from tensorflow.keras import models
+import joblib
 
 
 #
@@ -56,7 +57,7 @@ def total_data_extractor(static_csv_path, audio_dir, do_not_print_scaled_deg=Fal
     return X_by_song, y_by_song
 
 # todo 출력값은 정규화된 라벨에 의하여 학습되었으므로 inverse_transform으로 역변환하여 실제 예측 값을 확인할 수 있다.
-def test_only_one_music(audio_path, model_path):
+def test_only_one_music(audio_path, model_path, fitted_scalar_path):
     mel_specs_as_array = []
     mel_specs = per_data_extractor(audio_path)
     print("mel_specs: ", np.array(mel_specs).shape)
@@ -67,15 +68,21 @@ def test_only_one_music(audio_path, model_path):
     print("processed music data's shape: ", processed.shape)
 
     model = models.load_model(model_path)
+    loaded_scaler = joblib.load(fitted_scalar_path)  # Load the saved scaler
     y_pred = model.predict(processed)
+    transformed_pred = loaded_scaler.inverse_transform(y_pred)
+
     print(y_pred)
     print(np.array(y_pred).shape)
-    mean_valence = np.mean(np.abs(y_pred[:, 0]))
-    mean_arousal = np.mean(np.abs(y_pred[:, 1]))
+    print(transformed_pred)
+    print(np.array(transformed_pred).shape)
+
+    mean_valence = np.mean(np.abs(transformed_pred[:, 0]))
+    mean_arousal = np.mean(np.abs(transformed_pred[:, 1]))
     print(f"Test(Mean) - Valence: {mean_valence:.4f}, Arousal: {mean_arousal:.4f}")
 
 # x_song = []
 # x_as_song = per_data_extractor('1002.mp3')
 # x_song.extend(x_as_song)
 # print("np.array(X_train).shape: ", np.array(x_song).shape)
-test_only_one_music('1002.mp3', 'best_cnn_model.keras')
+test_only_one_music('1002.mp3', 'best_cnn_model.keras', 'minmax_scaler.pkl')
