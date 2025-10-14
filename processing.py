@@ -2,8 +2,8 @@ import librosa
 import numpy as np
 import os
 import pandas as pd
-from tensorflow.keras import models
 import joblib
+from keras import layers, models
 
 
 #
@@ -13,7 +13,8 @@ def per_data_extractor(audio_path, label=None):
     y_full, sr = librosa.load(audio_path, sr=44100, mono=True)
 
     # Segment into 5-second chunks (for consistency with CNN)
-    segment_samples = 5 * sr
+    segment_length = 5  # seconds
+    segment_samples = segment_length * sr
     segments = [y_full[i:i+segment_samples] for i in range(0, len(y_full), segment_samples)
                 if len(y_full[i:i+segment_samples]) == segment_samples]
 
@@ -67,9 +68,14 @@ def test_only_one_music(audio_path, model_path, fitted_scalar_path):
     processed = np.expand_dims(processed, axis=-1) # Expand dimensions for CNN or LSTM
     print("processed music data's shape: ", processed.shape)
 
-    model = models.load_model(model_path)
+    # if weight_used:
+    #     model.load_weights(weight_or_model_path)
+    #     model_used = model
+    # else:
+    model_used = models.load_model(model_path)
+
     loaded_scaler = joblib.load(fitted_scalar_path)  # Load the saved scaler
-    y_pred = model.predict(processed)
+    y_pred = model_used.predict(processed)
     transformed_pred = loaded_scaler.inverse_transform(y_pred)
 
     print(y_pred)
@@ -85,4 +91,7 @@ def test_only_one_music(audio_path, model_path, fitted_scalar_path):
 # x_as_song = per_data_extractor('1002.mp3')
 # x_song.extend(x_as_song)
 # print("np.array(X_train).shape: ", np.array(x_song).shape)
-test_only_one_music('1002.mp3', 'best_cnn_model.keras', 'minmax_scaler.pkl')
+if __name__ == '__main__':
+    test_only_one_music('1002.mp3',
+                        'model/best_kaggle/best_cnn_model.keras',
+                        'model/best_kaggle/minmax_scaler.pkl')
