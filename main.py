@@ -1,7 +1,7 @@
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 import tensorflow as tf
-from tensorflow.keras import layers, models
+from keras import layers, models, callbacks
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -135,8 +135,8 @@ history = model.fit(X_train, y_train_normalized,
                     epochs=50,
                     batch_size=32,
                     callbacks=[
-                        tf.keras.callbacks.EarlyStopping(patience=10),
-                        tf.keras.callbacks.ModelCheckpoint("best_cnn_model.keras", save_best_only=True)
+                        callbacks.EarlyStopping(patience=10),
+                        callbacks.ModelCheckpoint("best_cnn_model_weight.h5", save_best_only=True)
                     ])
 
 # Evaluate model

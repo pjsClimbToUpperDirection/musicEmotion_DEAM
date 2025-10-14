@@ -211,5 +211,6 @@ __marimo__/
 *.mp3
 *.png
 *.pkl
+*.h5
 
 model/*
